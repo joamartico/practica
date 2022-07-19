@@ -5,7 +5,6 @@ import "./App.css";
 
 const initValue = 523;
 const annualValues = [543, 575, 605, 635, 659];
-// const annualValues = [100, 200, 500, 400, 500];
 annualValues.unshift(initValue);
 
 const maxValue = Math.max(...annualValues);
@@ -67,6 +66,8 @@ function App() {
 			}
 		}
 
+		paintCurve();
+
 		let t = 0;
 		function animation() {
 			t = t + 2;
@@ -91,9 +92,11 @@ function App() {
 				requestAnimationFrame(animation);
 			}
 		}
-		animation();
 
-		window.requestAnimationFrame(animation);
+		setTimeout(() => {
+			animation();
+			window.requestAnimationFrame(animation);
+		}, 4000);
 	}, []);
 
 	function getY(value) {
@@ -147,12 +150,12 @@ function App() {
 										y={getY(value) + 16}
 										delayToAppear={() => {
 											if (i === 0) {
-												return "0s";
+												return "4s";
 											} else if (
 												i ===
 												annualValues.length - 1
 											) {
-												return "1.5s";
+												return "5.5s";
 											}
 										}}
 									>
@@ -162,7 +165,7 @@ function App() {
 
 								<Dot
 									value={getY(value)}
-									delayToAppear={i === 0 && "0s"}
+									delayToAppear={i === 0 && "4s"}
 								/>
 
 								<Label>
@@ -279,7 +282,6 @@ const Percentage = styled.div`
 	font-family: "Poppins", sans-serif;
 	font-weight: bold;
 	color: #fff;
-	// 4% of letter spacing
 	letter-spacing: 0.04em;
 	margin-top: auto;
 	vertical-align: baseline;
@@ -297,12 +299,10 @@ const Text = styled.p`
 	margin-top: ${({ mt }) => mt && mt}px;
 	position: ${({ y }) => y && "absolute"};
 	bottom: ${({ y }) => y && y}px;
-	opacity: ${({ delayToAppear }) => (delayToAppear ? 0 : 1)};
-	animation: ${appear} 0.5s ease-in-out, ${disappear} 0.5s ease-in-out 1;
+	animation: ${disappear} 0.5s ease-in-out 1, ${appear} 0.5s ease-in-out;
 	animation: ${({ delayToAppear }) => !delayToAppear && "none"};
 	animation-fill-mode: forwards;
-	animation-delay: ${({ delayToAppear }) => delayToAppear}, 6s;
-
+	animation-delay: 3s, ${({delayToAppear}) => delayToAppear || "5s"};
 `;
 
 const Lines = styled.div`
@@ -317,11 +317,9 @@ const Lines = styled.div`
 `;
 
 const Line = styled.hr`
-	/* line-height: 11px; */
 	width: 255px;
 	height: 0px;
 	margin: 0;
-	/* opacity: 0.4; */
 	border: 0.5px dashed #12244840;
 `;
 
@@ -341,7 +339,6 @@ const Columns = styled.div`
 	position: absolute;
 	z-index: 1;
 	bottom: 0;
-	/* left: 5; */
 	max-width: 257px;
 `;
 
@@ -368,27 +365,20 @@ const VerticalLine = styled.div`
 	height: 5px;
 	z-index: 1;
 	border: 1px solid #999;
-	/* margin-bottom: 3px; */
 	border-radius: 1px;
-	/* margin-top: auto; */
-	/* display: flex; */
 	margin-bottom: -2px;
 `;
 
 const Dot = styled.div`
 	background: #fff;
-
 	border-radius: 50%;
 	height: 11px;
 	width: 11px;
-	/* border: 2px solid #1f8eea; */
 	background: linear-gradient(to right, #854af2 65%, #1a92ea 75%);
 	background-attachment: fixed;
-
 	position: absolute;
 	z-index: 10;
 	bottom: ${({ value }) => `${value}px`};
-
 	&:after {
 		content: "";
 		position: absolute;
@@ -399,21 +389,15 @@ const Dot = styled.div`
 		border-radius: 50%;
 		background: #fff;
 	}
-	opacity: 0;
-	animation: ${appear} 0.5s ease-in-out, ${disappear} 0.5s ease-in-out 1;
+	animation: ${disappear} 0.5s ease-in-out 1, ${appear} 0.5s ease-in-out;
 	animation-fill-mode: forwards;
-	animation-delay: ${({ delayToAppear }) => delayToAppear || "1s"} , 5s;
-
-
-	
+	animation-delay: 2.5s, ${({delayToAppear}) => delayToAppear || "5s"};
 `;
- 
+
 const Canvas = styled.canvas`
 	position: absolute;
 	top: 0px;
-	animation: ${disappear} 0.5s ease-in-out 1;
+	animation: ${disappear} 0.5s ease-in-out 1, ${appear} 0.5s ease-in-out;
+	animation-delay: 2.5s, 4s;
 	animation-fill-mode: forwards;
-	animation-delay: 5s;
-
-
 `;
