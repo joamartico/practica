@@ -1,70 +1,99 @@
 import { useEffect, useRef } from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import PolygonUp from "./components/PolygonUp";
 import "./App.css";
 
+const initValue = 523;
 const annualValues = [543, 575, 605, 635, 659];
 // const annualValues = [100, 200, 500, 400, 500];
-
-const initValue = 523;
 annualValues.unshift(initValue);
 
-function App() {
-	const maxValue = Math.max(...annualValues);
-	const minValue = Math.min(...annualValues);
+const maxValue = Math.max(...annualValues);
+const minValue = Math.min(...annualValues);
 
+function App() {
 	const canvasRef = useRef();
 
 	useEffect(() => {
 		var ctx = canvasRef.current.getContext("2d");
 
-		const points = annualValues.map((value, i) => {
-			return {
-				x: 21 + i * 43,
-				y: 120 - (getY(value) + 6),
-			};
-		});
+		function paintCurve() {
+			ctx.lineWidth = 4;
+			var grad = ctx.createLinearGradient(50, 50, 200, 50);
+			grad.addColorStop(0, "#854AF2");
+			grad.addColorStop(1, "#1A92EA");
 
-		for (var i = 0; i < points.length - 1; i++) {
-			var x_mid = (points[i].x + points[i + 1]?.x) / 2;
-			var y_mid = (points[i].y + points[i + 1]?.y) / 2;
+			ctx.strokeStyle = grad;
 
-			if (
-				i === 0 ||
-				(points[i].y > points[i + 1]?.y &&
-					points[i].y > points[i - 1]?.y)
-			) {
-				// y_mid = y_mid + 12; // :)
-				y_mid = y_mid + Math.abs(points[i].y - points[i + 1].y) / 2; // :)
+			const points = annualValues.map((value, i) => {
+				return {
+					x: 21 + i * 43,
+					y: 120 - (getY(value) + 6),
+				};
+			});
+
+			for (var i = 0; i < points.length - 1; i++) {
+				var x_mid = (points[i].x + points[i + 1]?.x) / 2;
+				var y_mid = (points[i].y + points[i + 1]?.y) / 2;
+
+				if (
+					i === 0 ||
+					(points[i].y > points[i + 1]?.y &&
+						points[i].y > points[i - 1]?.y)
+				) {
+					y_mid = y_mid + Math.abs(points[i].y - points[i + 1].y) / 2; // :)
+				}
+
+				if (
+					(i === points.length - 2 &&
+						points[i - 1].y > points[i].y) ||
+					(points[i].y < points[i + 1]?.y &&
+						points[i].y < points[i - 1]?.y) ||
+					(points[i].y < points[i - 1]?.y &&
+						points[i].y < points[i + 2]?.y)
+				) {
+					y_mid = y_mid - Math.abs(points[i].y - points[i + 1].y) / 2; // :(
+				}
+				ctx.beginPath();
+
+				ctx.moveTo(points[i].x, points[i].y);
+				ctx.quadraticCurveTo(
+					x_mid,
+					y_mid,
+					points[i + 1]?.x,
+					points[i + 1]?.y
+				);
+				ctx.stroke();
 			}
-
-			if (
-				(i === points.length - 2 && points[i - 1].y > points[i].y) ||
-				(points[i].y < points[i + 1]?.y &&
-					points[i].y < points[i - 1]?.y) ||
-				(points[i].y < points[i - 1]?.y &&
-					points[i].y < points[i + 2]?.y)
-			) {
-				// y_mid = y_mid - 12; // :(
-				y_mid = y_mid - Math.abs(points[i].y - points[i + 1].y) / 2; // :(
-			}
-			ctx.beginPath();
-
-			ctx.moveTo(points[i].x, points[i].y);
-			ctx.quadraticCurveTo(
-				x_mid,
-				y_mid,
-				points[i + 1]?.x,
-				points[i + 1]?.y
-			);
-			ctx.stroke();
 		}
-		ctx.lineWidth = 4;
-		var grad = ctx.createLinearGradient(50, 50, 200, 50);
-		grad.addColorStop(0, "#854AF2");
-		grad.addColorStop(1, "#1A92EA");
 
-		ctx.strokeStyle = grad;
+		let t = 0;
+		function animation() {
+			t = t + 2;
+
+			ctx.clearRect(
+				0,
+				0,
+				canvasRef.current.width,
+				canvasRef.current.height
+			);
+
+			paintCurve();
+
+			ctx.clearRect(
+				canvasRef.current.width,
+				0,
+				-canvasRef.current.width + t,
+				canvasRef.current.height
+			);
+
+			if (t < 500) {
+				requestAnimationFrame(animation);
+			}
+		}
+		animation();
+
+		window.requestAnimationFrame(animation);
 	}, []);
 
 	function getY(value) {
@@ -80,8 +109,6 @@ function App() {
 	}
 
 	function calculateGrowth(value) {
-		// onde decimal max:
-
 		return ((100 * (value - initValue)) / initValue).toFixed(1);
 	}
 
@@ -115,11 +142,29 @@ function App() {
 						return (
 							<Column>
 								{(i === 0 || i === annualValues.length - 1) && (
-									<Text bold y={getY(value) + 16}>
+									<Text
+										bold
+										y={getY(value) + 16}
+										delayToAppear={() => {
+											if (i === 0) {
+												return "0s";
+											} else if (
+												i ===
+												annualValues.length - 1
+											) {
+												return "1.5s";
+											}
+										}}
+									>
 										${value}K
 									</Text>
 								)}
-								<Dot value={getY(value)} />
+
+								<Dot
+									value={getY(value)}
+									delayToAppear={i === 0 && "0s"}
+								/>
+
 								<Label>
 									<VerticalLine />
 									<Text mt={4}>
@@ -146,6 +191,26 @@ function App() {
 }
 
 export default App;
+
+const appear = keyframes`
+	0% {
+		opacity: 0;
+
+	}
+	100% {
+		opacity: 1;
+	}
+`;
+
+const disappear = keyframes`
+	0% {
+		opacity: 1;
+
+	}
+	100% {
+		opacity: 0;
+	}
+`;
 
 const Center = styled.div`
 	margin: auto;
@@ -216,11 +281,8 @@ const Percentage = styled.div`
 	color: #fff;
 	// 4% of letter spacing
 	letter-spacing: 0.04em;
-	/* height: 24px; */
-
 	margin-top: auto;
 	vertical-align: baseline;
-	//justify text at bottom:
 	line-height: 20px;
 `;
 
@@ -235,6 +297,12 @@ const Text = styled.p`
 	margin-top: ${({ mt }) => mt && mt}px;
 	position: ${({ y }) => y && "absolute"};
 	bottom: ${({ y }) => y && y}px;
+	opacity: ${({ delayToAppear }) => (delayToAppear ? 0 : 1)};
+	animation: ${appear} 0.5s ease-in-out, ${disappear} 0.5s ease-in-out 1;
+	animation: ${({ delayToAppear }) => !delayToAppear && "none"};
+	animation-fill-mode: forwards;
+	animation-delay: ${({ delayToAppear }) => delayToAppear}, 6s;
+
 `;
 
 const Lines = styled.div`
@@ -331,9 +399,21 @@ const Dot = styled.div`
 		border-radius: 50%;
 		background: #fff;
 	}
-`;
+	opacity: 0;
+	animation: ${appear} 0.5s ease-in-out, ${disappear} 0.5s ease-in-out 1;
+	animation-fill-mode: forwards;
+	animation-delay: ${({ delayToAppear }) => delayToAppear || "1s"} , 5s;
 
+
+	
+`;
+ 
 const Canvas = styled.canvas`
 	position: absolute;
 	top: 0px;
+	animation: ${disappear} 0.5s ease-in-out 1;
+	animation-fill-mode: forwards;
+	animation-delay: 5s;
+
+
 `;
